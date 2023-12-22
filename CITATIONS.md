@@ -1,0 +1,1 @@
+Thank you to [open-dict-data](https://github.com/open-dict-data/ipa-dict) on GitHub, whose IPA word lists I shamelessly stole for the builting languages.
