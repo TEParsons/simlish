@@ -57,7 +57,7 @@ def download_language_words(language):
     
 
 
-def populate_language_profile(language, words):
+def populate_language_profile(language, levels=1, words=None):
     """
     Create a full profile for the given language from a list of IPA words.
     
@@ -70,59 +70,62 @@ def populate_language_profile(language, words):
     """
     # find folder for this language
     profile_dir = get_user_dir() / "profiles" / language
+    words_file = profile_dir / "words.csv"
     # make sure it exists
     if not profile_dir.is_dir():
         profile_dir.mkdir(parents=True)
-
-    # load/save words
-    if isinstance(words, (list, tuple)):
-        # if given a list of words, make a file from it
-        words_file = profile_dir / "words.csv"
-        words_file.write_text("\n".join(words), encoding="utf8")
-    else:
-        # otherwise, read words from file
-        words_file = Path(words)
+    # make sure it has words
+    if not (profile_dir / "words.csv").is_file():
+        if isinstance(words, (list, tuple)):
+            # if words are a list, save them
+            words_file.write_text("\n".join(words), encoding="utf8")
+        else:
+            # otherwise, get words from module
+            words_file.write_text(
+                (get_module_dir() / "profiles" / language / "words.csv").read_text(encoding="utf8"),
+                encoding="utf8"
+            )
+    # load words if not given
+    if words is None:
         words = words_file.read_text(encoding="utf8").split("\n")
-    
-    # construct weights file path
-    weights_file = profile_dir / "weights.csv"
-    # load/calculate weights
-    if weights_file.is_file():
-        # if already defined, just load existing weights
-        weights = pd.read_csv(str(weights_file), header=0, index_col=0)
-    else:
-        # setup pandas array
-        weights = pd.DataFrame(
-            0,
-            columns=ipa_chars + [end_char], index=[start_char] + ipa_chars, 
-        )
-        # iterate through words
-        for word in words:
-            # iterate through chars
-            for i in range(len(word) + 1):
-                # get last char
-                if i > 0:
-                    last_char = word[i-1]
-                else:
-                    last_char = start_char
-                # get this char
-                if i < len(word):
+    # calculate weights for each level
+    for lvl in range(levels):
+        # account for zero indices
+        lvl += 1
+        # construct weights file path
+        weights_file = profile_dir / f"weights{lvl}.csv"
+        # load/calculate weights
+        if weights_file.is_file():
+            # if already defined, just load existing weights
+            weights = pd.read_csv(str(weights_file), header=0, index_col=0)
+        else:
+            # setup pandas array
+            weights = pd.DataFrame(
+                0,
+                columns=ipa_chars + [end_char], index=[start_char] + ipa_chars, 
+            )
+            # iterate through words
+            for word in words:
+                # pad word with start/end chars
+                for n in range(lvl):
+                    word = start_char + word + end_char
+                # iterate through chars
+                for i in range(len(word)):
+                    # skip start char
+                    if word[i] == start_char:
+                        continue
+                    # get last char
+                    last_char = word[i-lvl]
+                    # get this char
                     this_char = word[i]
-                else:
-                    this_char = end_char
-                # people tend to be a bit stupider than the dictionary, so make word end slightly more likely
-                this_weight = 1 + int(this_char == end_char)
-                # add to probability of this_char following last_char
-                weights[this_char][last_char] += this_weight
-        # normalize rows
-        weights = weights.div(weights.sum(axis=1), axis=0).fillna(0)
-        # save weights
-        weights.to_csv(
-            str(weights_file), index=True, header=True
-        )
-    
-    
-    return words, weights
+                    # add to probability of this_char following last_char
+                    weights[this_char][last_char] += 1
+            # normalize rows
+            weights = weights.div(weights.sum(axis=1), axis=0).fillna(0)
+            # save weights
+            weights.to_csv(
+                str(weights_file), index=True, header=True
+            )
 
 
 def install_language(language):

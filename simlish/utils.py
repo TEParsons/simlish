@@ -154,7 +154,7 @@ def get_module_dir():
     return Path(module_dir)
 
 
-def load_language_profile(language):
+def load_language_profile(language, levels=1):
     # try user dir then module dir
     for folder in (get_user_dir(), get_module_dir()):
         # look for profiles folder
@@ -169,9 +169,13 @@ def load_language_profile(language):
     # load words
     words = (language_dir / "words.csv").read_text(encoding="utf8").split("\n")
     # load weights
-    weights = pd.read_csv(
-        str(language_dir / "weights.csv"),
-        header=0, index_col=0
-    )
+    weights = []
+    for lvl in range(levels):
+        weights.append(
+            pd.read_csv(
+                str(language_dir / f"weights{lvl+1}.csv"),
+                header=0, index_col=0
+            )
+        )
     
     return words, weights
