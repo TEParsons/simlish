@@ -20,7 +20,7 @@ def random_word(language="en_UK", levels=1):
                 lvl += 1
                 p *= this_weights.loc[word[-lvl]]
             # normalize weights
-            p = p.div(p.sum(), axis=0).fillna(0)
+            p = p.div(p.sum()).fillna(0)
             # choose next letter
             word += np.random.choice(
                 ipa_chars + [end_char], 
