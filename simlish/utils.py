@@ -147,7 +147,7 @@ def get_module_dir():
     > Path to this module's root directory
     """
     # get parent of this file
-    module_dir = Path().parent
+    module_dir = Path(__file__).parent
     # make absolute
     module_dir = module_dir.absolute()
 
