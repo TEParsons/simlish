@@ -1,6 +1,7 @@
 
 import pandas as pd
 from pathlib import Path
+import logging
 
 
 ipa_chars = [
@@ -168,12 +169,24 @@ def load_language_profile(language, levels=1):
     assert language_dir.is_dir()
     # load words
     words = (language_dir / "words.csv").read_text(encoding="utf8").split("\n")
-    # load weights
+    # load weights for each level
     weights = []
     for lvl in range(levels):
+        # account for zero indexing
+        lvl += 1
+        # construct weights file name
+        weights_file = language_dir / f"weights{lvl}.csv"
+        # if there isn't one, populate
+        if not weights_file.is_file():
+            logging.warning(
+                f"Running language {language} at level {lvl} for the first time, there may be a considerable delay while the weights array is generated..."
+            )
+            from .setup import populate_language_profile
+            populate_language_profile(language=language, levels=lvl)
+        # load and append weights from file
         weights.append(
             pd.read_csv(
-                str(language_dir / f"weights{lvl+1}.csv"),
+                str(weights_file),
                 header=0, index_col=0
             )
         )
