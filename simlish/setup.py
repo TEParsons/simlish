@@ -76,30 +76,6 @@ def populate_language_profile(language, words):
         words_file = Path(words)
         words = words_file.read_text(encoding="utf8").split("\n")
     
-    # define descriptives file path
-    lengths_file = profile_dir / "lengths.csv"
-    # load/calculate lengths
-    if lengths_file.is_file():
-        # if already defined, just load existing lengths
-        lengths = pd.read_csv(str(lengths_file), header=0)
-    else:
-        # calculate length of each word
-        all_lengths = [len(word) for word in words]
-        # setup lengths array
-        lengths = pd.DataFrame(
-            0,
-            columns=np.unique(all_lengths), index=[0]
-        )
-        # work out proportions
-        for length in np.unique(all_lengths):
-            lengths[length] = all_lengths.count(length)
-        # normalize
-        lengths = lengths.div(lengths.sum(axis=1), axis=0)
-        # save
-        lengths.to_csv(
-            str(lengths_file), header=True, index=False
-        )
-    
     # construct weights file path
     weights_file = profile_dir / "weights.csv"
     # load/calculate weights
@@ -138,7 +114,7 @@ def populate_language_profile(language, words):
         )
     
     
-    return words, weights, lengths
+    return words, weights
 
 
 def install_language(language):

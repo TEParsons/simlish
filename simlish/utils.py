@@ -173,10 +173,5 @@ def load_language_profile(language):
         str(language_dir / "weights.csv"),
         header=0, index_col=0
     )
-    # load lengths
-    lengths = pd.read_csv(
-        str(language_dir / "lengths.csv"),
-        header=0
-    )
     
-    return words, weights, lengths
+    return words, weights

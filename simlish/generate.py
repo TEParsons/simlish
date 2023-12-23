@@ -3,14 +3,14 @@ import numpy as np
 from .utils import load_language_profile, ipa_chars, start_char, end_char
 
 def random_word(language="en_UK"):
-    words, weights, lengths = load_language_profile(language)
+    words, weights = load_language_profile(language)
 
     # function to try one build
     def try_build():
         # start off with last char as start char
         word = start_char
         # work one phoneme at a time...
-        while not word.endswith(end_char) and len(word) < len(lengths.columns):
+        while not word.endswith(end_char):
             word += np.random.choice(
                 ipa_chars + [end_char], 
                 p=weights.loc[word[-1]]
