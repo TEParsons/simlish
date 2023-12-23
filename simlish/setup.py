@@ -44,6 +44,14 @@ def download_language_words(language):
     content = re.sub(pattern=r"/.*(/).*/", repl="", string=content)
     # get words in IPA
     words = re.findall(pattern=r"(?<=/).*(?=/)", string=content)
+    # find folder for this language
+    profile_dir = get_user_dir() / "profiles" / language
+    # make sure it exists
+    if not profile_dir.is_dir():
+        profile_dir.mkdir(parents=True)
+    # save file
+    words_file = profile_dir / "words.csv"
+    words_file.write_text("\n".join(words), encoding="utf8")
 
     return words
     

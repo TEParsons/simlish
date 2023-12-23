@@ -2,3 +2,4 @@
 desktop.ini
 scratch.py
 __pycache__
+*.code-workspace
